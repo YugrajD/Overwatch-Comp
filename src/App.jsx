@@ -4,7 +4,9 @@ import HomePage from './pages/HomePage';
 import GameLog from './pages/GameLog';
 import NotFoundPage from './pages/NotFoundPage';
 import MainLayout from './layouts/MainLayout';
-import SignIn from './pages/SignIn';
+import SignIn from './components/SignIn';
+import SignUp from './components/SignUp';
+import GameAnalysis from './components/GameAnalysis';
 import './index.css';
 
 const router = createBrowserRouter(
@@ -14,6 +16,8 @@ const router = createBrowserRouter(
       <Route path="gamelog" element={<GameLog />} />
       <Route path="sign-in" element={<SignIn />} />
       <Route path="*" element={<NotFoundPage />} />
+      <Route path="sign-up" element={<SignUp />} />
+      <Route path="analysis" element={<GameAnalysis />} />
     </Route>
   )
 );

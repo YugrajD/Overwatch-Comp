@@ -8,6 +8,8 @@ const Navbar = () => {
       ? 'bg-black text-white hover:bg-gray-800 px-3 py-2 rounded-md text-sm font-medium'
       : 'hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium';
 
+    const logorsign = ({ })
+
   return (
     <nav className="bg-indigo-700 border-b border-indigo-500">
        <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
@@ -30,6 +32,9 @@ const Navbar = () => {
             </NavLink>
             <NavLink to="/sign-in" className={linkClass}>
               Sign in
+            </NavLink>
+            <NavLink to="/analysis" className={linkClass}>
+              Stat Analysis
             </NavLink>
           </div>
         </div>
