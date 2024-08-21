@@ -36,6 +36,9 @@ const Navbar = () => {
             <NavLink to="/analysis" className={linkClass}>
               Stat Analysis
             </NavLink>
+            <NavLink to="/val-log" className={linkClass}>
+            Valorant Game Log
+            </NavLink>
           </div>
         </div>
       </div>

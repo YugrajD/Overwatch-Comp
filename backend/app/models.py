@@ -14,6 +14,8 @@ def get_default_user():
     return User.objects.first().pk
 
 class GameLog(models.Model):
+    
+    #overwatch
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=get_default_user)
     date = models.DateTimeField()
     map = models.CharField(max_length=100)
@@ -25,6 +27,26 @@ class GameLog(models.Model):
     damage = models.IntegerField()
     healing = models.IntegerField()
     mitigation = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.date} - {self.map} - {self.result}"
+    
+class ValGameLog(models.Model):
+
+    #valorant
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=get_default_user)
+    valDate = models.DateTimeField()
+    valMap = models.CharField(max_length=100)
+    valResult = models.CharField(max_length=50)
+    agent = models.CharField(max_length=50)
+    valStart = models.CharField(max_length=50)
+    kills = models.IntegerField()
+    assist = models.IntegerField()
+    death = models.IntegerField()
+    econRating  = models.IntegerField()
+    plants = models.IntegerField()
+    defuses = models.IntegerField()
+    combatScore = models.IntegerField()
 
     def __str__(self):
         return f"{self.date} - {self.map} - {self.result}"

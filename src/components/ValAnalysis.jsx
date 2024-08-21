@@ -7,18 +7,17 @@ const GameLogAnalysis = () => {
     const [filteredAnalysis, setFilteredAnalysis] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selectedMap, setSelectedMap] = useState('');
-    const [selectedRole, setSelectedRole] = useState('');
+    const [selectedValMap, setSelectedValMap] = useState('');
+    const [selectedAgent, setSelectedAgent] = useState('');
 
-    const overwatchMaps = [
-        "Ilios", "Lijiang Tower", "Nepal", "Oasis", "Busan", "Antarctic Peninsula",
-        "Dorado", "Route 66", "Watchpoint: Gibraltar", "Junkertown", "Rialto", "Havana",
-        "Shambali Monastery", "New Junk City", "Eichenwalde", "Hollywood", "King's Row",
-        "Numbani", "Blizzard World", "Midtown", "Paraíso", "New Queen Street", "Colosseo",
-        "Esperança", "Suravasa", "Circuit Royal"
+    const valorantMaps = ["Ascent", "Bind", "Breeze", "Fracture", "Haven", "Icebox", "Lotus", "Pearl", "Split"].sort();
+    const agents = [
+        "Brimstone", "Viper", "Omen", "Killjoy", "Cypher", 
+        "Sova", "Sage", "Phoenix", "Jett", "Reyna", 
+        "Raze", "Breach", "Skye", "Yoru", "Astra", 
+        "KAY/O", "Chamber", "Neon", "Fade", "Harbor",
+        "Gekko", "Clove"
     ].sort();
-
-    const roles = ['Tank', 'Damage', 'Support'];
 
     useEffect(() => {
         const fetchAnalysis = async () => {
@@ -28,7 +27,7 @@ const GameLogAnalysis = () => {
                     throw new Error('No token found');
                 }
 
-                const response = await axios.get('http://127.0.0.1:8000/api/analyze/', {
+                const response = await axios.get('http://127.0.0.1:8000/api/valanalyze/', {
                     headers: {
                         'Authorization': `Token ${token}`,
                     },
@@ -47,12 +46,12 @@ const GameLogAnalysis = () => {
         fetchAnalysis();
     }, []);
 
-    const handleMapChange = (event) => {
-        setSelectedMap(event.target.value);
+    const handleValMapChange = (event) => {
+        setSelectedValMap(event.target.value);
     };
 
-    const handleRoleChange = (event) => {
-        setSelectedRole(event.target.value);
+    const handleAgentChange = (event) => {
+        setSelectedAgent(event.target.value);
     };
 
     const handleFilterSubmit = () => {
@@ -63,30 +62,31 @@ const GameLogAnalysis = () => {
         
         let filteredLogs = analysis.logs;
 
-        if (selectedMap) {
-            filteredLogs = filteredLogs.filter(log => log.map === selectedMap);
+        if (selectedValMap) {
+            filteredLogs = filteredLogs.filter(log => log.valMap === selectedValMap);
         }
 
-        if(selectedRole) {
-            filteredLogs = filteredLogs.filter(log => log.role === selectedRole);
+        if(selectedAgent) {
+            filteredLogs = filteredLogs.filter(log => log.agent === selectedAgent);
         }
 
         console.log('Filtered Logs:', filteredLogs);
 
         if (filteredLogs.length > 0) {
             const winLossRatio = filteredLogs.reduce((acc, log) => {
-                acc[log.result] = (acc[log.result] || 0) + 1;
+                acc[log.valResult] = (acc[log.valResult] || 0) + 1;
                 return acc;
             }, {});
             const averageStats = filteredLogs.reduce((acc, log) => {
-                acc.eliminations += log.eliminations;
-                acc.assists += log.assists;
-                acc.deaths += log.deaths;
-                acc.damage += log.damage;
-                acc.healing += log.healing;
-                acc.mitigation += log.mitigation;
+                acc.kills += log.kills;
+                acc.assist += log.assist;
+                acc.death += log.death;
+                acc.plants += log.plants;
+                acc.defuses += log.defuses;
+                acc.combatScore += log.combatScore;
+                acc.econRating += log.econRating;
                 return acc;
-            }, { eliminations: 0, assists: 0, deaths: 0, damage: 0, healing: 0, mitigation: 0 });
+            }, { kills: 0, assist: 0, death: 0, plants: 0, defuses: 0, combatScore: 0, econRating: 0});
 
             Object.keys(averageStats).forEach(key => {
                 averageStats[key] /= filteredLogs.length;
@@ -118,17 +118,17 @@ const GameLogAnalysis = () => {
             <h1>Game Analysis</h1>
             <div>
                 <label htmlFor="mapFilter">Filter by Map:</label>
-                <select id="mapFilter" value={selectedMap} onChange={handleMapChange}>
+                <select id="mapFilter" value={selectedValMap} onChange={handleValMapChange}>
                     <option value="">All Maps</option>
-                    {overwatchMaps.map(map => (
+                    {valorantMaps.map(map => (
                         <option key={map} value={map}>{map}</option>
                     ))}
                 </select>
                 <label htmlFor="roleFilter">Filter by Role:</label>
-                <select id="roleFilter" value={selectedRole} onChange={handleRoleChange}>
-                    <option value="">All Roles</option>
-                    {roles.map(role => (
-                        <option key={role} value={role}>{role}</option>
+                <select id="roleFilter" value={selectedAgent} onChange={handleAgentChange}>
+                    <option value="">All Agents</option>
+                    {agents.map(agent => (
+                        <option key={agent} value={agent}>{agent}</option>
                     ))}
                 </select>
                 <button onClick={handleFilterSubmit}>Submit</button>
@@ -141,12 +141,13 @@ const GameLogAnalysis = () => {
             </div>
             <div>
                 <h2>Average Stats</h2>
-                <p>Eliminations: {filteredAnalysis?.average_stats?.eliminations?.toFixed(2)}</p>
-                <p>Assists: {filteredAnalysis?.average_stats?.assists?.toFixed(2)}</p>
-                <p>Deaths: {filteredAnalysis?.average_stats?.deaths?.toFixed(2)}</p>
-                <p>Damage: {filteredAnalysis?.average_stats?.damage?.toFixed(2)}</p>
-                <p>Healing: {filteredAnalysis?.average_stats?.healing?.toFixed(2)}</p>
-                <p>Mitigation: {filteredAnalysis?.average_stats?.mitigation?.toFixed(2)}</p>
+                <p>Kills: {filteredAnalysis?.average_stats?.kills?.toFixed(2)}</p>
+                <p>Assists: {filteredAnalysis?.average_stats?.assist?.toFixed(2)}</p>
+                <p>Deaths: {filteredAnalysis?.average_stats?.death?.toFixed(2)}</p>
+                <p>Plants: {filteredAnalysis?.average_stats?.plants?.toFixed(2)}</p>
+                <p>Defuses: {filteredAnalysis?.average_stats?.defuses?.toFixed(2)}</p>
+                <p>Combat score: {filteredAnalysis?.average_stats?.combatScore?.toFixed(2)}</p>
+                <p>Econ Rating: {filteredAnalysis?.average_stats?.econRating?.toFixed(2)}</p>
             </div>
             <div>
                 <h2>Performance Trends</h2>

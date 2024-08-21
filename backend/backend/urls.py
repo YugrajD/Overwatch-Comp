@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-from app.api.views import signup, analyze_game_logs, plot_performance_trend
+from app.api.views import signup, analyze_game_logs, plot_performance_trend, val_analyze_game_logs
 from rest_framework.authtoken import views
 
 urlpatterns = [
@@ -26,7 +26,8 @@ urlpatterns = [
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     path('api/signup/', signup, name='signup'),
     path('api/analyze/', analyze_game_logs, name='analyze_game_logs'),
+    path('api/valanalyze/', val_analyze_game_logs, name='val_analyze_game_logs'),
     path('api/plot/', plot_performance_trend, name='plot_performance_trend'),
-     path('api-token-auth/', views.obtain_auth_token),
+    path('api-token-auth/', views.obtain_auth_token),
     path('', include('app.api.urls')),
 ]

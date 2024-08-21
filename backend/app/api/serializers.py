@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 
-from ..models import Post, GameLog
+from ..models import Post, GameLog, ValGameLog
 
 class PostSerializer(ModelSerializer):
     class Meta:
@@ -14,6 +14,11 @@ class GameLogSerializer(ModelSerializer):
         fields = '__all__'
         read_only_fields = ('user',)
 
+class ValGameLogSerializer(ModelSerializer):
+    class Meta:
+        model = ValGameLog
+        fields = '__all__'
+        read_only_fields = ('user',)
 
 
 class AnalysisResultSerializer(serializers.Serializer):

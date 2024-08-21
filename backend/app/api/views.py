@@ -6,8 +6,8 @@ from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from ..models import Post, GameLog
-from .serializers import PostSerializer, GameLogSerializer, AnalysisResultSerializer
+from ..models import Post, GameLog, ValGameLog
+from .serializers import PostSerializer, GameLogSerializer, ValGameLogSerializer, AnalysisResultSerializer
 from .forms import GameLogForm
 import pandas as pd
 from django.http import JsonResponse, HttpResponse
@@ -60,6 +60,26 @@ class GameLogViewSet(viewsets.ModelViewSet):
             print(serializer.errors)  # Print errors to the console
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+class ValGameLogViewSet(viewsets.ModelViewSet):
+    queryset = ValGameLog.objects.all()
+    serializer_class = ValGameLogSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ValGameLog.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.errors)  # Print errors to the console
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 
 
 
@@ -98,23 +118,76 @@ def analyze_game_logs(request):
         # Example analysis: Performance trends over time
         df['date'] = pd.to_datetime(df['date'])
         df.set_index('date', inplace=True)
-        monthly_performance_trends = df[numeric_columns].resample('ME').mean().to_dict(orient='list')
+        monthly_performance_trends = df[numeric_columns].resample('M').mean().to_dict(orient='list')
         logger.debug(f"Performance Trends: {monthly_performance_trends}")
 
         analysis_result = {
             'win_loss_ratio': win_loss_ratio,
             'average_stats': average_stats,
             'performance_trends': monthly_performance_trends,
+            'logs': game_logs_list
         }
 
         logger.debug(f"Analysis Result: {analysis_result}")
         
-        # Serialize the analysis result
-        serializer = AnalysisResultSerializer(analysis_result)
-        return Response(serializer.data)
+        return JsonResponse(analysis_result, safe=False)
     except Exception as e:
         logger.error(f"Error analyzing game logs: {e}", exc_info=True)
         return Response({'message': 'Error analyzing game logs'}, status=500)
+    
+
+@api_view(['GET'])
+def val_analyze_game_logs(request):
+    logger = logging.getLogger(__name__)
+    user = request.user
+    logger.debug(f"User: {user}, User ID: {user.id}")
+
+    try:
+        val_game_logs = ValGameLog.objects.filter(user=user).values()
+        val_game_logs_list = list(val_game_logs)
+
+        logger.debug(f"Game Logs: {val_game_logs_list}")
+
+        if not val_game_logs_list:
+            logger.info("No game logs found in the database for the user.")
+            return Response({'message': 'No game logs found'}, status=404)
+
+        df = pd.DataFrame(val_game_logs_list)
+        logger.debug(f"DataFrame:\n{df}")
+
+        if df.empty:
+            logger.info("DataFrame is empty after conversion.")
+            return Response({'message': 'No game logs found'}, status=404)
+
+        # Example analysis: Calculate Win/Loss ratio
+        val_win_loss_ratio = df['valResult'].value_counts(normalize=True).to_dict()
+        logger.debug(f"Win/Loss Ratio: {val_win_loss_ratio}")
+
+        # Example analysis: Average stats
+        val_numeric_columns = ['kills', 'assist', 'death', 'econRating', 'plants', 'defuses', 'combatScore']
+        val_average_stats = df[val_numeric_columns].mean().to_dict()
+        logger.debug(f"Average Stats: {val_average_stats}")
+
+        # Example analysis: Performance trends over time
+        df['valDate'] = pd.to_datetime(df['valDate'])
+        df.set_index('valDate', inplace=True)
+        val_monthly_performance_trends = df[val_numeric_columns].resample('M').mean().to_dict(orient='list')
+        logger.debug(f"Performance Trends: {val_monthly_performance_trends}")
+
+        val_analysis_result = {
+            'win_loss_ratio': val_win_loss_ratio,
+            'average_stats': val_average_stats,
+            'performance_trends': val_monthly_performance_trends,
+            'logs': val_game_logs_list
+        }
+
+        logger.debug(f"Analysis Result: {val_analysis_result}")
+        
+        return JsonResponse(val_analysis_result, safe=False)
+    except Exception as e:
+        logger.error(f"Error analyzing game logs: {e}", exc_info=True)
+        return Response({'message': 'Error analyzing game logs'}, status=500)
+
 @api_view(['GET'])
 def plot_performance_trend(request):
     user = request.user

@@ -7,6 +7,8 @@ import MainLayout from './layouts/MainLayout';
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
 import GameAnalysis from './components/GameAnalysis';
+import ValLog from './components/ValLog'
+import ValAnalysis from './components/ValAnalysis'
 import './index.css';
 
 const router = createBrowserRouter(
@@ -18,6 +20,8 @@ const router = createBrowserRouter(
       <Route path="*" element={<NotFoundPage />} />
       <Route path="sign-up" element={<SignUp />} />
       <Route path="analysis" element={<GameAnalysis />} />
+      <Route path="val-log" element={<ValLog />} />
+      <Route path="val-analysis" element={<ValAnalysis />} />
     </Route>
   )
 );
